@@ -1,6 +1,9 @@
 
 // Application object.
 var app = {};
+var steeringValue = 50; //Init
+var throttleValue = 0;
+var started = false; //Is control started. Toggle button home.
 
 /** BLE plugin, is loaded asynchronously so the
 	variable is redefined in the onDeviceReady handler. */
@@ -23,9 +26,51 @@ app.onDeviceReady = function()
 {
 	// The plugin was loaded asynchronously and can here be referenced.
 	ble = evothings.ble;
-
+	navigator.accelerometer.watchAcceleration(onSuccess, onError, {frequency: 200});
   // For development only.
   // toggle_scan(true);
+};
+function resetValues() {
+	throttleValue = 0;
+	steeringValue = 50;
+	update();
+}
+
+function onSuccess(acceleration) {
+    //Mapping steering values acceleration.x between 6 (left) and -6 (right)
+	//Mapping throttle values acceleration.y between 4 (stop) and -4 (full throttle)
+	acceleration.x = -acceleration.x;
+	acceleration.y = -acceleration.y;
+	if(acceleration.x < -6) {
+		acceleration.x = -6;
+	} else if(acceleration.x > 6) {
+		acceleration.x = 6;
+	}
+	if(acceleration.y <= -6) {
+		acceleration.y = -6;
+	} else if(acceleration.y >= 4) {
+		acceleration.y = 4;
+	}
+	//Offset to work on a positive range only.
+	var offset = 6;
+	//Range 12
+	steeringValue = (acceleration.x + offset) * 99 / 12;
+	//Throttle
+	//Range 10
+	//254 is max value
+	throttleValue = (acceleration.y + offset) * 254 / 10;
+	steeringValue = percentValueX;
+	
+	//console.log(throttleValue);
+	//console.log(steeringValue);
+	//Update to bird only if control button is on start flying.
+	if(started) {
+		update();
+	}
+};
+
+function onError() {
+    console.log('onError!');
 };
 
 var errorCB = function(err) {
@@ -100,10 +145,7 @@ var got_service_data = function(deviceHandle, services) {
     console.log('read thruster: ' + JSON.prune(data));
     $("#thrust").val(data[0] || 0);
   });
-  read_value('steering', function(data) {
-    console.log('read steering: ' + JSON.prune(data));
-    $("#steering").val(data[0] || 50);
-  });
+  
   // read_value('battery', function(data) {
   //   console.log('read battery ' + JSON.prune(data));
   // });
@@ -150,6 +192,14 @@ var toggle_scan = function(scanning) {
     ble.stopScan();
   }
 }
+ var thrust = $("#thrust");
+var update = function() {
+    var val = new Uint8Array([
+      parseInt(steeringValue),
+      parseInt(throttleValue),
+    ]);
+    write_value('thruster', val);
+  };
 
 $(document).ready( function() {
   clear_devices();
@@ -165,31 +215,11 @@ $(document).ready( function() {
   $("#scan").click(function() {
     toggle_scan(!app.scanning);
   });
-  var thrust = $("#thrust");
-  var steering = $("#steering");
-  var update = function() {
-    var val = new Uint8Array([
-      parseInt(steering.val()),
-      parseInt(thrust.val()),
-    ]);
-    write_value('thruster', val);
-  };
-  thrust.change(update);
-  steering.change(update);
-  $('#stop').click(function() {
-    thrust.val(0);
-    thrust.change();
+  $("#flying").click(function() {
+    started = !started;
+	var flyingBtn = $('#flying')[0];
+	flyingBtn.innerText = flyingBtn.dataset[started];
+	resetValues();
   });
-  // thrust.change(function() {
-  //   var val = new Uint8Array([parseInt(thrust.val())]);
-  //   console.log(JSON.prune(val));
-  //   write_value('thruster', val);
-  // });
-  // steering.change(function() {
-  //   var val = new Uint8Array([parseInt(steering.val())]);
-  //   write_value('steering', val);
-  // });
-  // $("#thrust").on("slidestart", function(ev) {
-  //   console.log($("#thrust").slider().val());
-  // });
 });
+
