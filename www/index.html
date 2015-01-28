@@ -24,22 +24,25 @@
         <meta name="msapplication-tap-highlight" content="no" />
         <!-- WARNING: for iOS 7, remove the width=device-width and height=device-height attributes. See https://issues.apache.org/jira/browse/CB-4323 -->
         <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height, target-densitydpi=device-dpi" />
+        <!-- When used via Evothings Workbench, don't allow caching on Android. -->
+        <meta http-equiv="pragma" content="no-cache" />
+	<meta http-equiv="expires" content="-1" />
         <link rel="stylesheet" href="css/jquery.mobile-1.4.5.min.css" />
-		<link rel="stylesheet" href="css/index.css" />
+	<link rel="stylesheet" href="css/index.css" />
         <title>Bionic Bird</title>
-		<script>
-			// Redirect console.log to Evothings Workbench.
-			if (window.hyper && window.hyper.log) { console.log = hyper.log }
-		</script>
-		<script src="js/jquery.js"></script>
-		<script src="js/jquery.mobile-1.4.5.min.js"></script>
-		<script src="js/JSON.prune/JSON.prune.js"></script>
-		<script src="cordova.js"></script>
-		<script src="js/uuid.js"></script>
-		<script src="js/main.js"></script>
-		<script>
-			app.initialize();
-		</script>
+	<script>
+		// Redirect console.log to Evothings Workbench.
+		if (window.hyper && window.hyper.log) { console.log = hyper.log }
+	</script>
+	<script src="js/jquery.js"></script>
+	<script src="js/jquery.mobile-1.4.5.min.js"></script>
+	<script src="js/JSON.prune/JSON.prune.js"></script>
+	<script src="cordova.js"></script>
+	<script src="js/uuid.js"></script>
+	<script src="js/main.js"></script>
+	<script>
+		app.initialize();
+	</script>
     </head>
     <body>
         <div data-role="page" id="first" data-theme="a">
